@@ -1,6 +1,6 @@
 import torch
 from dataset import get_dataloader
-
+from tqdm import tqdm
 
 
 class DDPM():
@@ -37,9 +37,9 @@ class DDPM():
             ts = torch.linspace(0,self.ddpm_T-1,10).to(torch.int)  # index需要整型
             ts_i = 9
             img_save = []
-        for t in reversed(range(self.ddpm_T)):      # 倒序循环实现逆扩散
-            print("t=",t)
-            x_t = self.sample_backward_step(x_t, t, net, simple_var=True)
+        for t in tqdm(reversed(range(self.ddpm_T))):      # 倒序循环实现逆扩散
+            # print("t=",t)
+            x_t = self.sample_backward_step(x_t, t, net)
             if(save_flag and (t == ts[ts_i])):
                 img_save.append(x_t)
                 ts_i = ts_i-1
@@ -51,6 +51,11 @@ class DDPM():
             img_save = einops.rearrange(img_save, 'n1 n2 c h w -> (n2 h) (n1 w) c' )
             img_save = (img_save.clip(-1, 1) + 1) / 2 * 255
             img_save = img_save.cpu().numpy().astype(np.uint8)
+            # if img_save.shape[0]>8*x_t.shape[3]:
+            #     img_save = img_save[:8*x_t.shape[3],:,:]                # 太长了就裁剪一下，也可以不裁
+            # print(img_save.shape)
+            if(img_save.shape[2]==3):
+                img_save = cv2.cvtColor(img_save, cv2.COLOR_RGB2BGR)
             cv2.imwrite('diffusion_backward.jpg', img_save)
         return x_t
     
@@ -71,7 +76,7 @@ class DDPM():
         noise = torch.sqrt(sigma_t2)*eps
 
 
-        t_tensor = torch.full((x_t.shape[0],),t).to(torch.long)             # 记得这里要to(torch.long)，因为t之前是整型（我也不确定有没有影响）
+        t_tensor = torch.full((x_t.shape[0],),t).to(torch.long).to(device)             # 记得这里要to(torch.long)，因为t之前是整型（我也不确定有没有影响）
         eps_theta = net(x_t,t_tensor)    
         mean = 1/torch.sqrt(alphas[t]) * (x_t -
                                             (1-alphas[t])/torch.sqrt(1-alpha_bars[t]) * eps_theta )                                
@@ -79,14 +84,15 @@ class DDPM():
         x_t = mean + noise    #严格来说等号左边的x_t其实是x_t-1
 
         return x_t
+    
 def module_test():
     import cv2
     import einops
     import numpy as np
-    device = 'cpu'
+    device = 'cuda'
     net = None
     batch_size = 4
-    ddpm = DDPM(net, device=device)       # 前向和后向网络
+    ddpm = DDPM(device=device)       # 前向和后向网络
     ddpm_T = ddpm.ddpm_T   
 
     dataloader = get_dataloader(batch_size) 
@@ -103,8 +109,8 @@ def module_test():
     x_ts = einops.rearrange(x_ts, 'n1 n2 c h w -> (n2 h) (n1 w) c')
     x_ts = (x_ts.clip(-1, 1) + 1) / 2 * 255
     x_ts = x_ts.cpu().numpy().astype(np.uint8)
-    if x_ts.shape[0]>8:
-        x_ts = x_ts[0:7,:]
+    if(x_ts.shape[2]==3):
+        x_ts = cv2.cvtColor(x_ts, cv2.COLOR_RGB2BGR)
     cv2.imwrite('diffusion_forward.jpg', x_ts)
 
 if __name__ == '__main__':

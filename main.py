@@ -15,7 +15,7 @@ import numpy as np
 
 def train(ddpm, net, ckpt_path, device):
     
-    n_epochs = 100      
+    n_epochs = 1000      
     batch_size = 512
     lr = 1e-3
     ddpm_T = ddpm.ddpm_T    
@@ -39,6 +39,8 @@ def train(ddpm, net, ckpt_path, device):
             optimizer.step()                                # 根据梯度更新参数
         toc = time.time()
         print(f'epoch {epoch_i} loss: {loss.item()} time: {(toc - tic):.2f}s')
+        if(epoch_i%100==0):
+            sample(ddpm, net, device)
     torch.save(net.state_dict(), ckpt_path)
 
 def sample(ddpm, net, device):
@@ -55,12 +57,14 @@ def sample(ddpm, net, device):
         x_new = (x_new.clip(-1, 1) + 1) / 2 * 255
         x_new = x_new.cpu().numpy().astype(np.uint8)
         # print(x_new.shape)
+        if(x_new.shape[2]==3):
+            x_new = cv2.cvtColor(x_new, cv2.COLOR_RGB2BGR)
         cv2.imwrite('diffusion_sample.jpg', x_new)
 
 if __name__ == '__main__':
 
-    ckpt_path = 'model_unet_res.pth'
-    device = 'cpu'
+    ckpt_path = './model_unet_res.pth'
+    device = 'cuda'
     ddpm_T = 1000
     net = build_network(unet_res_cfg, ddpm_T)
     net = net.to(device)
