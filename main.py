@@ -8,7 +8,7 @@ from ddpm_process import DDPM
 from network import (build_network, convnet_big_cfg,
                                   convnet_medium_cfg, convnet_small_cfg,
                                   unet_1_cfg, unet_res_cfg)
-
+from network2 import build_unet
 import cv2
 import einops
 import numpy as np
@@ -16,8 +16,8 @@ import numpy as np
 def train(ddpm, net, ckpt_path, device):
     
     n_epochs = 1000      
-    batch_size = 512
-    lr = 1e-3
+    batch_size = 256
+    lr = 2e-4
     ddpm_T = ddpm.ddpm_T    
     dataloader = get_dataloader(batch_size)     
     loss_fn = nn.MSELoss()                                  # nn里有自带的loss function
@@ -41,7 +41,7 @@ def train(ddpm, net, ckpt_path, device):
         print(f'epoch {epoch_i} loss: {loss.item()} time: {(toc - tic):.2f}s')
         if(epoch_i%100==0):
             sample(ddpm, net, device)
-    torch.save(net.state_dict(), ckpt_path)
+        torch.save(net.state_dict(), ckpt_path)
 
 def sample(ddpm, net, device):
     
@@ -63,10 +63,11 @@ def sample(ddpm, net, device):
 
 if __name__ == '__main__':
 
-    ckpt_path = './model_unet_res.pth'
-    device = 'cuda'
+    ckpt_path = './model_unet2.pth'
+    device = 'cpu'
     ddpm_T = 1000
-    net = build_network(unet_res_cfg, ddpm_T)
+    # net = build_network(unet_res_cfg, ddpm_T)
+    net = build_unet()
     net = net.to(device)
     ddpm = DDPM(ddpm_T = ddpm_T, device=device)       # 前向和后向网络
 

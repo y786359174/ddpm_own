@@ -1,31 +1,33 @@
 import torchvision
 import torch
 from torch.utils.data import DataLoader
-from torchvision.transforms import Compose, Lambda, ToTensor
+from torchvision.transforms import Compose, Lambda, ToTensor, Pad
 import einops
 import numpy as np
 import cv2
 
 
 
-# def get_dataloader(batch_size: int):
-#     transform = Compose([ToTensor(), Lambda(lambda x: (x - 0.5) * 2)])
-#     dataset = torchvision.datasets.MNIST(root='./data/mnist',
-#                                          transform=transform, download=True)
-#     return DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-# def get_img_shape():
-#     return (1, 28, 28)
-
 def get_dataloader(batch_size: int):
-    transform = Compose([ToTensor(), Lambda(lambda x: (x - 0.5) * 2)])
-    data_dir = './data/faces'
-    dataset = torchvision.datasets.ImageFolder(root=data_dir,
-                                         transform=transform)
+    transform = Compose([ToTensor(), 
+                         Pad(padding=2, fill=0),
+                         Lambda(lambda x: (x - 0.5) * 2)])
+    dataset = torchvision.datasets.MNIST(root='./data/mnist',
+                                         transform=transform, download=True)
     return DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 def get_img_shape():
-    return (3, 96, 96)
+    return (1, 28, 28)
+
+# def get_dataloader(batch_size: int):
+#     transform = Compose([ToTensor(), Lambda(lambda x: (x - 0.5) * 2)])
+#     data_dir = './data/faces'
+#     dataset = torchvision.datasets.ImageFolder(root=data_dir,
+#                                          transform=transform)
+#     return DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+# def get_img_shape():
+#     return (3, 96, 96)
 
 def module_test():
     batch_size = 64
