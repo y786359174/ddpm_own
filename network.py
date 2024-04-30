@@ -245,7 +245,7 @@ convnet_big_cfg = {
     'insert_t_to_all_layers': True
 }
 
-unet_1_cfg = {'type': 'UNet', 'channels': [10, 20, 40, 80], 'pe_dim': 128}
+unet_1_cfg = {'type': 'UNet', 'channels': [64, 128, 256, 512, 1024], 'pe_dim': 256}
 unet_res_cfg = {
     'type': 'UNet',
     'channels': [10, 20, 40, 80],

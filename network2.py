@@ -314,10 +314,10 @@ class UNet(nn.Module):
 
 def build_unet():
     image_c = get_img_shape()[0]
-    # n_chs = (64, 64, 128, 256, 512, 1024)
-    n_chs = (32, 32, 64, 64, 128)
-    # is_attn = (False, False, False, False, True, True)
-    is_attn = (False, False, False, True, True)
+    n_chs = (64, 64, 128, 256, 512, 1024)
+    is_attn = (False, False, False, False, True, True)
+    # n_chs = (32, 32, 64, 64, 128)
+    # is_attn = (False, False, False, True, True)
     n_blocks = 2
     net = UNet(image_c, n_chs, is_attn, n_blocks)
     return net

@@ -22,7 +22,7 @@ class DDPM():
         self.alphas = alphas.to(device)
         self.betas = betas.to(device)
         self.device = device
-        pass
+        # pass
 
     def ddpm_sample_forward(self, x, t, eps):       # 没有考虑batch_size
         # alpha_bar = torch.index_select(self.alphas_bar,0,t)  # 输入index也是向量

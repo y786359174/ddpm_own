@@ -15,9 +15,9 @@ import numpy as np
 
 def train(ddpm, net, ckpt_path, device):
     
-    n_epochs = 1000      
+    n_epochs = 5000      
     batch_size = 256
-    lr = 2e-4
+    lr = 1e-4
     ddpm_T = ddpm.ddpm_T    
     dataloader = get_dataloader(batch_size)     
     loss_fn = nn.MSELoss()                                  # nn里有自带的loss function
@@ -39,11 +39,15 @@ def train(ddpm, net, ckpt_path, device):
             optimizer.step()                                # 根据梯度更新参数
         toc = time.time()
         print(f'epoch {epoch_i} loss: {loss.item()} time: {(toc - tic):.2f}s')
-        if(epoch_i%100==0):
+        if(epoch_i%60==0):
             sample(ddpm, net, device)
         torch.save(net.state_dict(), ckpt_path)
 
+
+sample_i = 0
 def sample(ddpm, net, device):
+    global sample_i
+    sample_i+=1
     
     i_n = 5
     # for i in range(i_n*i_n):
@@ -59,18 +63,19 @@ def sample(ddpm, net, device):
         # print(x_new.shape)
         if(x_new.shape[2]==3):
             x_new = cv2.cvtColor(x_new, cv2.COLOR_RGB2BGR)
-        cv2.imwrite('diffusion_sample.jpg', x_new)
+        cv2.imwrite('diffusion_sample_%d.jpg' %(sample_i), x_new)
 
 if __name__ == '__main__':
 
     ckpt_path = './model_unet2.pth'
-    device = 'cpu'
+    device = 'cuda:0'
     ddpm_T = 1000
     # net = build_network(unet_res_cfg, ddpm_T)
     net = build_unet()
     net = net.to(device)
     ddpm = DDPM(ddpm_T = ddpm_T, device=device)       # 前向和后向网络
 
+    net.load_state_dict(torch.load(ckpt_path))
     train(ddpm, net, ckpt_path, device=device)
     net.load_state_dict(torch.load(ckpt_path))
     sample(ddpm, net, device)
