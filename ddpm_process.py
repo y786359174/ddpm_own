@@ -72,7 +72,7 @@ class DDPM():
             sigma_t2 = torch.tensor(0).to(device)                           # 因为计算逆向过程x_t-1的sigma2时需要用到t-1下角标，所以要分类讨论
         else:
             # sigma_t2 = (1-alpha_bars[t-1])/(1-alpha_bars[t])*betas[t]     # 计算逆向过程x_t-1时使用重参数技巧把正态分布分成均值和方差，这里在计算方差
-            sigma_t2 = betas[t]                                             # 我记得是好像是哪个文章说经验来看这个结果更好
+            sigma_t2 = betas[t]                                             # 我记得是好像是哪个文章说经验来看这个结果更好，是DDIM里说的，但是不是DDIM这个算法。
         noise = torch.sqrt(sigma_t2)*eps
 
 
