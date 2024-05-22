@@ -16,12 +16,14 @@ class DDPM():
         for i, alpha in enumerate(alphas):      # 在迭代过程中同时获取索引和元素
             product *= alpha
             alpha_bars[i] = product
-
+        self.min_beta = min_beta
+        self.max_beta = max_beta
         self.ddpm_T = ddpm_T
         self.alpha_bars = alpha_bars.to(device)
         self.alphas = alphas.to(device)
         self.betas = betas.to(device)
         self.device = device
+        
         # pass
 
     def ddpm_sample_forward(self, x, t, eps):       # 没有考虑batch_size
@@ -30,6 +32,9 @@ class DDPM():
         alpha_bar = self.alpha_bars[t].reshape(-1, 1, 1, 1)                         # 假设x是四维张量
         x_t = x * torch.sqrt(alpha_bar)  + eps * torch.sqrt(1-alpha_bar) 
         return x_t
+    
+    def sample_backward(self, net, eps_T, save_flag = False):  
+        return self.ddpm_sample_backward(net, eps_T, save_flag)
     
     def ddpm_sample_backward(self, net, eps_T, save_flag = False):      
         x_t = eps_T                                 # 此时的eps_T是xT，第一个噪声
