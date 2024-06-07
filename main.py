@@ -3,9 +3,12 @@ import time
 import torch
 import torch.nn as nn
 from dataset import get_dataloader, get_img_shape
-from ddpm_process import DDPM
+# from ddpm_process import DDPM
+from ddim_process import DDIM
 from network2 import build_unet
+# from network import build_network, unet_res_cfg
 from utils import sample
+from tqdm import tqdm
 
 def train(ddpm, net, ckpt_path, device):
     
@@ -20,7 +23,7 @@ def train(ddpm, net, ckpt_path, device):
 
     for epoch_i in range(n_epochs):
         tic = time.time()
-        for x,_ in dataloader:                              # 这里x充当每次的输入x0
+        for x,_ in tqdm(dataloader):                              # 这里x充当每次的输入x0
             x = x.to(device)
             eps = torch.randn_like(x).to(device)             # 获取正态分布噪声，形状和x一致。新建数据记得todevice
             # print(x.shape[0])
@@ -40,15 +43,16 @@ def train(ddpm, net, ckpt_path, device):
 
 if __name__ == '__main__':
 
-    ckpt_path = './model_unet2.pth'
+    # ckpt_path = './model_unet2.pth'
+    ckpt_path = './data/number/model_unet_res.pth'
     device = 'cuda:0'
     ddpm_T = 1000
     # net = build_network(unet_res_cfg, ddpm_T)
     net = build_unet()
     net = net.to(device)
-    ddpm = DDPM(ddpm_T = ddpm_T, device=device)       # 前向和后向网络
+    ddpm = DDIM(ddpm_T = ddpm_T, device=device)       # 前向和后向网络
 
-    net.load_state_dict(torch.load(ckpt_path))
-    train(ddpm, net, ckpt_path, device=device)
+    # net.load_state_dict(torch.load(ckpt_path))
+    # train(ddpm, net, ckpt_path, device=device)
     net.load_state_dict(torch.load(ckpt_path))
     sample(ddpm, net, device)
