@@ -263,3 +263,24 @@ def build_network(config: dict, n_steps):
 
     network = network_cls(n_steps, **config)
     return network
+
+if __name__ == '__main__':
+
+    # ckpt_path = './model_unet2.pth'
+    ckpt_path = './data/number/model_unet_res.pth'
+    device = 'cuda:0'
+    ddpm_T = 1000
+    net = build_network(unet_res_cfg, ddpm_T)
+    # net = build_unet()
+    net = net.to(device)
+    # ddpm = DDIM(ddpm_T = ddpm_T, device=device)       # 前向和后向网络
+
+    # net.load_state_dict(torch.load(ckpt_path))
+    # train(ddpm, net, ckpt_path, device=device)
+    # net.load_state_dict(torch.load(ckpt_path))
+    # sample(ddpm, net, device)
+    net.eval()
+    input1 = torch.randn(2,3,28,28).to(device)
+    input2 = torch.randn(2,).to(device)
+    inputs = (input1, input2)
+    torch.onnx.export(net, inputs, './data/number/model_unet_res.onnx', verbose=True, input_names=['input'], output_names=['output'], opset_version=15) #指定模型的输入，以及onnx的输出路径
